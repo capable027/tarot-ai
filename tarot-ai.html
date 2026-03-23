@@ -1,0 +1,2215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星命塔罗 · AI占卜解读</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0a0810;
+    --bg-main: #0f0c18;
+    --bg-card: #1a1428;
+    --bg-panel: #1e1830;
+    --purple-deep: #2d1f52;
+    --purple-mid: #4a2c8a;
+    --purple-light: #7c54c4;
+    --purple-glow: #9b6ee8;
+    --purple-pale: #c4a8f0;
+    --purple-mist: #e8d8ff;
+    --gold: #c9a84c;
+    --gold-bright: #e8c76a;
+    --gold-pale: #f5e4a8;
+    --text-primary: #f0e8ff;
+    --text-secondary: #c4a8e8;
+    --text-muted: #8a7aaa;
+    --border-purple: rgba(156, 110, 232, 0.3);
+    --border-gold: rgba(201, 168, 76, 0.4);
+    --glow-purple: 0 0 20px rgba(156, 110, 232, 0.2);
+    --glow-gold: 0 0 20px rgba(201, 168, 76, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    font-family: 'Noto Serif SC', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 92% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 25%, rgba(200,150,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 40%, rgba(200,150,255,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Purple mist overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 20% 50%, rgba(74, 44, 138, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(74, 44, 138, 0.06) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ===== NAV ===== */
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10, 8, 16, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-purple);
+  }
+
+  .nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .nav-logo span { color: var(--purple-pale); }
+
+  .nav-links {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .nav-link {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .nav-link:hover { color: var(--purple-pale); }
+  .nav-link.active { color: var(--gold); }
+
+  .btn-login {
+    background: transparent;
+    border: 1px solid var(--border-purple);
+    color: var(--purple-pale);
+    padding: 0.4rem 1rem;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.8rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .btn-login:hover {
+    background: var(--purple-deep);
+    border-color: var(--purple-light);
+    color: var(--purple-mist);
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .main {
+    position: relative;
+    z-index: 1;
+    padding-top: 60px;
+    min-height: 100vh;
+  }
+
+  /* ===== PAGES ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== HOME PAGE ===== */
+  .hero {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .hero-sigil {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    position: relative;
+  }
+
+  .sigil-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--border-gold);
+    animation: rotateSlow 20s linear infinite;
+  }
+
+  .sigil-ring::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: -4px;
+    width: 8px; height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+    transform: translateY(-50%);
+  }
+
+  .sigil-inner {
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--border-purple);
+    animation: rotateSlow 15s linear infinite reverse;
+  }
+
+  .sigil-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+  }
+
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .hero-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--gold-bright) 0%, var(--purple-pale) 50%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    letter-spacing: 0.3em;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-desc {
+    max-width: 480px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 3rem;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--purple-mid), var(--purple-deep));
+    border: 1px solid var(--purple-light);
+    color: var(--text-primary);
+    padding: 0.8rem 2.5rem;
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-start::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(156,110,232,0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn-start:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 30px rgba(156,110,232,0.3);
+  }
+  .btn-start:hover::before { opacity: 1; }
+
+  .hero-divider {
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-gold), transparent);
+    margin: 2rem auto;
+  }
+
+  .hero-cards-preview {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  .preview-card {
+    width: 60px;
+    height: 96px;
+    border-radius: 4px;
+    border: 1px solid var(--border-purple);
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: transform 0.3s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .preview-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(156,110,232,0.05) 4px,
+      rgba(156,110,232,0.05) 8px
+    );
+  }
+
+  .preview-card:nth-child(1) { transform: rotate(-8deg) translateY(4px); }
+  .preview-card:nth-child(2) { transform: rotate(-3deg) translateY(-2px); }
+  .preview-card:nth-child(3) { transform: rotate(2deg) translateY(2px); }
+  .preview-card:nth-child(4) { transform: rotate(7deg) translateY(4px); }
+  .preview-card:nth-child(5) { transform: rotate(12deg) translateY(8px); }
+
+  .preview-card:hover { transform: translateY(-8px) rotate(0deg) !important; z-index: 5; }
+
+  /* ===== SPREAD SELECTION ===== */
+  .page-header {
+    text-align: center;
+    padding: 3rem 2rem 2rem;
+  }
+
+  .page-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .ornament {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0;
+  }
+
+  .ornament-line {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-gold));
+  }
+  .ornament-line.rev { background: linear-gradient(90deg, var(--border-gold), transparent); }
+  .ornament-dot { width: 4px; height: 4px; background: var(--gold); border-radius: 50%; }
+
+  .question-input-wrap {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    padding: 0 1.5rem;
+  }
+
+  .question-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
+    letter-spacing: 0.05em;
+  }
+
+  .question-input {
+    width: 100%;
+    background: rgba(26, 20, 40, 0.8);
+    border: 1px solid var(--border-purple);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+
+  .question-input::placeholder { color: var(--text-muted); }
+  .question-input:focus { border-color: var(--purple-light); }
+
+  .spreads-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    padding: 0 2rem 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .spread-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-purple);
+    border-radius: 8px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spread-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(74,44,138,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .spread-card:hover {
+    border-color: var(--purple-light);
+    box-shadow: var(--glow-purple);
+    transform: translateY(-2px);
+  }
+  .spread-card:hover::before { opacity: 1; }
+
+  .spread-card.selected {
+    border-color: var(--gold);
+    box-shadow: var(--glow-gold);
+  }
+
+  .spread-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    color: var(--gold);
+    border: 1px solid var(--border-gold);
+    border-radius: 20px;
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .spread-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+  }
+
+  .spread-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .spread-positions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .position-tag {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    border: 1px solid rgba(156,110,232,0.2);
+    border-radius: 3px;
+    padding: 0.15rem 0.5rem;
+    background: rgba(74,44,138,0.1);
+  }
+
+  .spread-visual {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+    align-items: flex-end;
+    margin-bottom: 0.75rem;
+  }
+
+  .mini-card {
+    background: var(--purple-deep);
+    border: 1px solid var(--border-purple);
+    border-radius: 2px;
+    width: 18px;
+    height: 28px;
+  }
+
+  /* ===== SHUFFLE PAGE ===== */
+  .shuffle-container {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .shuffle-deck {
+    position: relative;
+    width: 120px;
+    height: 192px;
+    margin: 2rem auto;
+    cursor: pointer;
+  }
+
+  .deck-card {
+    position: absolute;
+    width: 120px;
+    height: 192px;
+    border-radius: 6px;
+    border: 1px solid var(--border-purple);
+    background: var(--bg-card);
+    transition: all 0.3s;
+    overflow: hidden;
+  }
+
+  .deck-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(156,110,232,0.06) 6px, rgba(156,110,232,0.06) 12px),
+      repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(156,110,232,0.04) 6px, rgba(156,110,232,0.04) 12px);
+  }
+
+  .deck-card::after {
+    content: '✦';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--border-gold);
+  }
+
+  .deck-card:nth-child(1) { transform: translate(-8px, 8px) rotate(-3deg); z-index: 1; }
+  .deck-card:nth-child(2) { transform: translate(-4px, 4px) rotate(-1.5deg); z-index: 2; }
+  .deck-card:nth-child(3) { transform: translate(0, 0); z-index: 3; }
+  .deck-card:nth-child(4) { transform: translate(4px, -4px) rotate(1.5deg); z-index: 4; }
+  .deck-card:nth-child(5) { transform: translate(8px, -8px) rotate(3deg); z-index: 5; }
+
+  .shuffle-deck.shuffling .deck-card { animation: shuffleAnim 0.6s ease-in-out; }
+  .shuffle-deck.shuffling .deck-card:nth-child(2) { animation-delay: 0.05s; }
+  .shuffle-deck.shuffling .deck-card:nth-child(3) { animation-delay: 0.1s; }
+  .shuffle-deck.shuffling .deck-card:nth-child(4) { animation-delay: 0.15s; }
+  .shuffle-deck.shuffling .deck-card:nth-child(5) { animation-delay: 0.2s; }
+
+  @keyframes shuffleAnim {
+    0% { transform: translate(0, 0) rotate(0); }
+    30% { transform: translate(-40px, -20px) rotate(-15deg); }
+    60% { transform: translate(40px, 10px) rotate(10deg); }
+    100% { transform: translate(0, 0) rotate(0); }
+  }
+
+  .shuffle-count {
+    font-family: 'Cinzel', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    margin: 1rem 0 0.25rem;
+  }
+
+  .shuffle-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-purple);
+    color: var(--text-secondary);
+    padding: 0.6rem 1.5rem;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    margin: 0 0.5rem;
+  }
+  .btn-secondary:hover {
+    border-color: var(--purple-light);
+    color: var(--purple-pale);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple-mid), var(--purple-deep));
+    border: 1px solid var(--purple-light);
+    color: var(--text-primary);
+    padding: 0.7rem 2rem;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    letter-spacing: 0.05em;
+    margin: 0 0.5rem;
+  }
+  .btn-primary:hover {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(156,110,232,0.3);
+  }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .shuffle-tip {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    max-width: 360px;
+    line-height: 1.7;
+    margin: 1.5rem auto;
+  }
+
+  /* ===== DRAW PAGE ===== */
+  .draw-container {
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .draw-spread-name {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .cards-fan {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1rem 0 2rem;
+    min-height: 220px;
+    align-items: center;
+  }
+
+  .fan-card {
+    width: 80px;
+    height: 128px;
+    border-radius: 5px;
+    border: 1px solid var(--border-purple);
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .fan-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(156,110,232,0.05) 5px, rgba(156,110,232,0.05) 10px);
+  }
+
+  .fan-card::after {
+    content: '✦';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: rgba(201, 168, 76, 0.4);
+  }
+
+  .fan-card:hover:not(.drawn) {
+    border-color: var(--gold);
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(156,110,232,0.3);
+  }
+
+  .fan-card.drawn {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .draw-progress {
+    text-align: center;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+
+  .drawn-cards-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+  }
+
+  .drawn-card-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .drawn-card-slot .slot-label {
+    font-size: 0.72rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    text-align: center;
+    max-width: 90px;
+  }
+
+  .card-flip-container {
+    width: 80px;
+    height: 128px;
+    perspective: 800px;
+    cursor: pointer;
+  }
+
+  .card-flip-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+  }
+
+  .card-flip-inner.flipped { transform: rotateY(180deg); }
+
+  .card-face, .card-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 5px;
+    border: 1px solid var(--border-purple);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: var(--bg-card);
+  }
+
+  .card-back {
+    background: var(--bg-card);
+  }
+
+  .card-back::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(156,110,232,0.05) 5px, rgba(156,110,232,0.05) 10px);
+  }
+  .card-back::after {
+    content: '✦';
+    font-size: 1.5rem;
+    color: var(--border-gold);
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-face { transform: rotateY(180deg); }
+
+  .card-reversed { transform: rotateY(180deg) rotate(180deg); }
+
+  .card-face-emoji {
+    font-size: 2rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .card-face-name {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 0 4px;
+    line-height: 1.3;
+  }
+
+  .card-orientation-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 0.55rem;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    z-index: 2;
+  }
+  .badge-upright {
+    background: rgba(74,44,138,0.8);
+    color: var(--purple-pale);
+  }
+  .badge-reversed {
+    background: rgba(100, 50, 20, 0.8);
+    color: var(--gold-pale);
+  }
+
+  .card-face {
+    background: linear-gradient(160deg, var(--bg-card) 0%, var(--bg-panel) 100%);
+  }
+
+  /* ===== READING PAGE ===== */
+  .reading-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .reading-spread-summary {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin: 1.5rem 0 2rem;
+    flex-wrap: wrap;
+  }
+
+  .reading-card-thumb {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .thumb-card {
+    width: 48px;
+    height: 76px;
+    border-radius: 3px;
+    border: 1px solid var(--border-gold);
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .thumb-card.reversed-thumb { transform: rotate(180deg); }
+
+  .thumb-label {
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 60px;
+  }
+
+  .reading-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-purple);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reading-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--purple-light), transparent);
+  }
+
+  .reading-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .reading-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.9;
+  }
+
+  .reading-text p { margin-bottom: 0.75rem; }
+  .reading-text p:last-child { margin-bottom: 0; }
+
+  .reading-text strong {
+    color: var(--purple-pale);
+  }
+
+  .reading-card-detail {
+    border-top: 1px solid var(--border-purple);
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+
+  .reading-card-detail:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  .card-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-detail-mini {
+    width: 36px;
+    height: 56px;
+    border-radius: 3px;
+    border: 1px solid var(--border-purple);
+    background: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .card-detail-info { flex: 1; }
+
+  .card-detail-name {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .card-detail-pos {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ===== LOADING ===== */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 8, 16, 0.92);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1.5rem;
+    backdrop-filter: blur(8px);
+  }
+
+  .loading-overlay.active { display: flex; }
+
+  .magic-circle {
+    width: 80px;
+    height: 80px;
+    position: relative;
+  }
+
+  .magic-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+  }
+
+  .magic-ring:nth-child(1) {
+    inset: 0;
+    border-top-color: var(--purple-light);
+    border-right-color: var(--purple-light);
+    animation: spin 1.5s linear infinite;
+  }
+  .magic-ring:nth-child(2) {
+    inset: 10px;
+    border-bottom-color: var(--gold);
+    border-left-color: var(--gold);
+    animation: spin 2s linear infinite reverse;
+  }
+  .magic-ring:nth-child(3) {
+    inset: 20px;
+    border-top-color: var(--purple-pale);
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .loading-text {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--purple-pale);
+    letter-spacing: 0.1em;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* ===== HISTORY PAGE ===== */
+  .history-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .history-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-purple);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .history-item:hover {
+    border-color: var(--purple-light);
+    box-shadow: var(--glow-purple);
+  }
+
+  .history-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .history-spread-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .history-date {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .history-question {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-style: italic;
+  }
+
+  .history-cards {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .history-mini-card {
+    width: 32px;
+    height: 50px;
+    border-radius: 2px;
+    border: 1px solid var(--border-purple);
+    background: var(--bg-panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+  }
+
+  /* ===== FOOTER HINT ===== */
+  .disclaimer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--border-purple);
+    margin-top: 2rem;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 8, 16, 0.85);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    padding: 1rem;
+  }
+  .modal-bg.active { display: flex; }
+
+  .modal-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-purple);
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    text-align: center;
+  }
+
+  .modal-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .modal-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .btn-close-modal {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.25rem;
+  }
+  .btn-close-modal:hover { color: var(--text-secondary); }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-panel);
+    border: 1px solid var(--border-purple);
+    border-radius: 6px;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    z-index: 500;
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== API KEY SETUP ===== */
+  .api-setup-notice {
+    background: rgba(74, 44, 138, 0.15);
+    border: 1px solid var(--border-purple);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .api-key-wrap {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .api-key-input {
+    flex: 1;
+    background: rgba(26, 20, 40, 0.8);
+    border: 1px solid var(--border-purple);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 0.82rem;
+    outline: none;
+  }
+  .api-key-input:focus { border-color: var(--purple-light); }
+
+  .btn-xs {
+    background: var(--purple-deep);
+    border: 1px solid var(--border-purple);
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: 'Noto Serif SC', serif;
+  }
+  .btn-xs:hover { border-color: var(--purple-light); color: var(--text-primary); }
+
+  /* ===== SCROLL AREA ===== */
+  .scroll-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 600px) {
+    .nav { padding: 0 1rem; }
+    .spreads-grid { padding: 0 1rem 2rem; grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    .fan-card { width: 60px; height: 96px; }
+    .cards-fan { gap: 0.5rem; }
+  }
+
+  /* ===== STREAMING TEXT ===== */
+  .streaming-cursor::after {
+    content: '|';
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .highlight-purple { color: var(--purple-pale); }
+  .highlight-gold { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">☽ <span>星命塔罗</span></div>
+  <div class="nav-links">
+    <span class="nav-link active" onclick="showPage('home')">占卜</span>
+    <span class="nav-link" onclick="showPage('history')">历史记录</span>
+    <span class="nav-link" onclick="showAbout()">关于</span>
+  </div>
+  <button class="btn-login" onclick="showModal('login')">登录 / 注册</button>
+</nav>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="magic-circle">
+    <div class="magic-ring"></div>
+    <div class="magic-ring"></div>
+    <div class="magic-ring"></div>
+  </div>
+  <div class="loading-text" id="loadingText">正在为您解读牌面深意...</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal-box" id="modalBox">
+    <button class="btn-close-modal" onclick="closeModal()">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ===== HOME PAGE ===== -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <div class="hero-sigil">
+        <div class="sigil-ring"></div>
+        <div class="sigil-inner"></div>
+        <div class="sigil-center">✦</div>
+      </div>
+      <h1 class="hero-title">ARCANA ORACLE</h1>
+      <p class="hero-sub">星命塔罗 · AI 智能解读</p>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-dot"></div>
+        <div class="ornament-line rev"></div>
+      </div>
+      <p class="hero-desc">将塔罗的古老智慧与现代AI深度融合，还原线下占卜的神秘仪式感。凝神静气，让牌面为你揭示命运的深意。</p>
+      <button class="btn-start" onclick="showPage('spread')">✦ 开始占卜</button>
+      <div class="hero-divider"></div>
+      <div class="hero-cards-preview">
+        <div class="preview-card">🌙</div>
+        <div class="preview-card">☀</div>
+        <div class="preview-card">⚡</div>
+        <div class="preview-card">🌟</div>
+        <div class="preview-card">♦</div>
+      </div>
+      <div style="margin-top:1.5rem; font-size:0.75rem; color:var(--text-muted); letter-spacing:0.1em;">
+        仅供娱乐参考，不构成现实决策依据
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SPREAD SELECTION PAGE ===== -->
+  <div class="page" id="page-spread">
+    <div class="page-header">
+      <p class="page-subtitle">STEP 1 · CHOOSE YOUR SPREAD</p>
+      <h2 class="page-title">选择牌阵</h2>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-dot"></div>
+        <div class="ornament-line rev"></div>
+      </div>
+      <p style="font-size:0.82rem;color:var(--text-muted);max-width:400px;margin:0 auto;">不同的牌阵对应不同的人生议题，选择最契合你当下疑惑的牌阵</p>
+    </div>
+
+    <div class="question-input-wrap">
+      <label class="question-label">✦ 心中疑问（选填）— 将带入AI解读，使解读更精准</label>
+      <textarea class="question-input" id="userQuestion" rows="2" placeholder="如：我现在的感情状况如何？这份工作适合我吗？"></textarea>
+    </div>
+
+    <div class="spreads-grid" id="spreadsGrid"></div>
+
+    <div style="text-align:center;padding:0 2rem 3rem;">
+      <button class="btn-secondary" onclick="showPage('home')">← 返回</button>
+      <button class="btn-primary" id="btnConfirmSpread" onclick="confirmSpread()">进入洗牌 →</button>
+    </div>
+  </div>
+
+  <!-- ===== SHUFFLE PAGE ===== -->
+  <div class="page" id="page-shuffle">
+    <div class="shuffle-container">
+      <p style="font-size:0.75rem;color:var(--text-muted);letter-spacing:0.15em;margin-bottom:0.5rem;">STEP 2 · SHUFFLE</p>
+      <h2 class="page-title" style="text-align:center;">洗牌凝心</h2>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-dot"></div>
+        <div class="ornament-line rev"></div>
+      </div>
+
+      <div class="shuffle-deck" id="shuffleDeck" onclick="doShuffle()">
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+        <div class="deck-card"></div>
+      </div>
+
+      <div class="shuffle-count" id="shuffleCount">0</div>
+      <div class="shuffle-label">次洗牌</div>
+
+      <p class="shuffle-tip">点击牌组，带着你的疑问专注洗牌。洗牌时保持内心平静，让直觉引导你的手。至少洗牌3次方可进入下一步。</p>
+
+      <div style="margin-top:1rem;">
+        <button class="btn-secondary" onclick="showPage('spread')">← 重选牌阵</button>
+        <button class="btn-primary" id="btnStartDraw" onclick="showPage('draw')" disabled>抽牌 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DRAW PAGE ===== -->
+  <div class="page" id="page-draw">
+    <div class="draw-container">
+      <div class="draw-spread-name">
+        <p style="font-size:0.75rem;color:var(--text-muted);letter-spacing:0.15em;">STEP 3 · DRAW YOUR CARDS</p>
+        <h2 class="page-title" style="text-align:center;" id="drawSpreadTitle">抽取牌面</h2>
+        <div class="ornament">
+          <div class="ornament-line"></div>
+          <div class="ornament-dot"></div>
+          <div class="ornament-line rev"></div>
+        </div>
+      </div>
+
+      <div class="draw-progress" id="drawProgress">点击牌堆中的任意一张牌，直觉指引你的选择</div>
+
+      <div class="cards-fan" id="cardsFan"></div>
+
+      <div style="text-align:center;margin-bottom:1rem;">
+        <p style="font-size:0.78rem;color:var(--text-muted);">⬇ 已抽取的牌面（点击翻面）</p>
+      </div>
+
+      <div class="drawn-cards-area" id="drawnCardsArea"></div>
+
+      <div style="text-align:center;margin-top:2rem;" id="drawActions">
+        <button class="btn-secondary" onclick="resetDraw()">重新抽牌</button>
+        <button class="btn-primary" id="btnStartReading" onclick="startReading()" disabled>开始解读 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== READING PAGE ===== -->
+  <div class="page" id="page-reading">
+    <div class="reading-container">
+      <div class="page-header" style="padding-top:1rem;padding-bottom:1rem;">
+        <p style="font-size:0.75rem;color:var(--text-muted);letter-spacing:0.15em;">STEP 4 · YOUR READING</p>
+        <h2 class="page-title" style="text-align:center;">牌面解读</h2>
+        <div class="ornament">
+          <div class="ornament-line"></div>
+          <div class="ornament-dot"></div>
+          <div class="ornament-line rev"></div>
+        </div>
+      </div>
+
+      <!-- API Key Setup -->
+      <div class="api-setup-notice" id="apiSetupNotice">
+        <span style="font-size:1.1rem;flex-shrink:0;">🔑</span>
+        <div>
+          <div style="color:var(--text-primary);margin-bottom:0.4rem;font-size:0.85rem;">配置 AI 解读（需要 OpenRouter 或 OpenAI API Key）</div>
+          <div>输入你的 API Key 以启用 AI 智能解读。Key 仅存储于本地浏览器，不上传服务器。</div>
+          <div class="api-key-wrap">
+            <input class="api-key-input" type="password" id="apiKeyInput" placeholder="sk-... 或 sk-or-...">
+            <button class="btn-xs" onclick="saveApiKey()">保存</button>
+            <button class="btn-xs" onclick="clearApiKey()">清除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="reading-spread-summary" id="readingSpreadSummary"></div>
+
+      <div id="readingContent">
+        <div style="text-align:center;color:var(--text-muted);padding:3rem 0;font-size:0.9rem;">
+          正在为您准备解读...
+        </div>
+      </div>
+
+      <div class="disclaimer">仅供娱乐参考，不构成现实决策依据 · 星命塔罗 AI 解读</div>
+
+      <div style="text-align:center;margin-top:2rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="saveReading()">✦ 保存记录</button>
+        <button class="btn-primary" onclick="showPage('spread')">重新占卜</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HISTORY PAGE ===== -->
+  <div class="page" id="page-history">
+    <div class="page-header">
+      <p class="page-subtitle">HISTORY · 占卜记录</p>
+      <h2 class="page-title">历史记录</h2>
+      <div class="ornament">
+        <div class="ornament-line"></div>
+        <div class="ornament-dot"></div>
+        <div class="ornament-line rev"></div>
+      </div>
+    </div>
+    <div class="history-container" id="historyContainer"></div>
+  </div>
+
+</div><!-- end .main -->
+
+<script>
+// =====================
+// TAROT DATA
+// =====================
+const TAROT_CARDS = [
+  { id: 0, name: "愚者", emoji: "🃏", element: "风" },
+  { id: 1, name: "魔术师", emoji: "🎩", element: "水星" },
+  { id: 2, name: "女祭司", emoji: "🌙", element: "月亮" },
+  { id: 3, name: "皇后", emoji: "♀", element: "金星" },
+  { id: 4, name: "皇帝", emoji: "♦", element: "白羊" },
+  { id: 5, name: "教皇", emoji: "⛪", element: "金牛" },
+  { id: 6, name: "恋人", emoji: "❤", element: "双子" },
+  { id: 7, name: "战车", emoji: "🏆", element: "巨蟹" },
+  { id: 8, name: "力量", emoji: "🦁", element: "狮子" },
+  { id: 9, name: "隐士", emoji: "🕯", element: "处女" },
+  { id: 10, name: "命运之轮", emoji: "☸", element: "木星" },
+  { id: 11, name: "正义", emoji: "⚖", element: "天秤" },
+  { id: 12, name: "倒吊人", emoji: "🔻", element: "海王" },
+  { id: 13, name: "死神", emoji: "🌹", element: "天蝎" },
+  { id: 14, name: "节制", emoji: "🌊", element: "射手" },
+  { id: 15, name: "恶魔", emoji: "🔗", element: "摩羯" },
+  { id: 16, name: "塔", emoji: "⚡", element: "火星" },
+  { id: 17, name: "星星", emoji: "⭐", element: "水瓶" },
+  { id: 18, name: "月亮", emoji: "🌕", element: "双鱼" },
+  { id: 19, name: "太阳", emoji: "☀", element: "太阳" },
+  { id: 20, name: "审判", emoji: "🎺", element: "冥王" },
+  { id: 21, name: "世界", emoji: "🌍", element: "土星" },
+];
+
+const SPREADS = [
+  {
+    id: "single",
+    name: "单牌占卜",
+    desc: "简洁直指核心，适合日常指引、快速答疑，一张牌道尽此刻真相",
+    count: 1,
+    hot: true,
+    positions: ["当下指引"],
+    icon: "◈"
+  },
+  {
+    id: "three",
+    name: "三牌阵",
+    desc: "经典时间轴牌阵，过去成因、现在处境、未来走向，全局洞察",
+    count: 3,
+    hot: true,
+    positions: ["过去", "现在", "未来"],
+    icon: "◈◈◈"
+  },
+  {
+    id: "choice",
+    name: "二选一牌阵",
+    desc: "面对人生十字路口，当你徘徊于两个选择之间，让牌揭示各方走向",
+    count: 4,
+    hot: false,
+    positions: ["选项A能量", "选项A结果", "选项B能量", "选项B结果"],
+    icon: "◈  ◈"
+  },
+  {
+    id: "hexagram",
+    name: "六芒星牌阵",
+    desc: "深度探究复杂议题，从六个维度多角度分析，适合人生重大决策",
+    count: 6,
+    hot: false,
+    positions: ["过去", "现在", "未来", "潜意识", "外部影响", "指引"],
+    icon: "✡"
+  },
+  {
+    id: "celtic",
+    name: "凯尔特十字",
+    desc: "塔罗最权威完整牌阵，十张牌环环相扣，揭示事件全貌与深层根源",
+    count: 10,
+    hot: false,
+    positions: ["现状", "阻碍", "根源", "近期", "理想", "潜意识", "建议", "外部", "希望与恐惧", "结果"],
+    icon: "✠"
+  }
+];
+
+// =====================
+// STATE
+// =====================
+let state = {
+  currentSpread: null,
+  userQuestion: "",
+  shuffleCount: 0,
+  drawnCards: [],  // {card, reversed, position}
+  apiKey: localStorage.getItem('tarot_api_key') || '',
+  history: JSON.parse(localStorage.getItem('tarot_history') || '[]'),
+  readingResult: null
+};
+
+// =====================
+// UTILS
+// =====================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function randomCard() {
+  return TAROT_CARDS[Math.floor(Math.random() * TAROT_CARDS.length)];
+}
+
+function showToast(msg, dur = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// =====================
+// NAVIGATION
+// =====================
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+
+  if (id === 'spread') renderSpreads();
+  if (id === 'shuffle') {
+    state.shuffleCount = 0;
+    document.getElementById('shuffleCount').textContent = '0';
+    document.getElementById('btnStartDraw').disabled = true;
+  }
+  if (id === 'draw') setupDrawPage();
+  if (id === 'history') renderHistory();
+}
+
+// =====================
+// SPREAD SELECTION
+// =====================
+function renderSpreads() {
+  const grid = document.getElementById('spreadsGrid');
+  grid.innerHTML = SPREADS.map(s => `
+    <div class="spread-card ${state.currentSpread === s.id ? 'selected' : ''}" onclick="selectSpread('${s.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">
+        <div>
+          ${s.hot ? '<div class="spread-badge">♦ 热门</div>' : '<div style="height:26px"></div>'}
+        </div>
+        <div style="font-size:1.2rem;color:var(--border-gold)">${s.icon}</div>
+      </div>
+      <div class="spread-name">${s.name}</div>
+      <div style="font-size:0.72rem;color:var(--gold);margin-bottom:0.5rem;">${s.count} 张牌</div>
+      <div class="spread-desc">${s.desc}</div>
+      <div class="spread-positions">
+        ${s.positions.map(p => `<span class="position-tag">${p}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectSpread(id) {
+  state.currentSpread = id;
+  renderSpreads();
+}
+
+function confirmSpread() {
+  if (!state.currentSpread) {
+    showToast('✦ 请先选择一个牌阵');
+    return;
+  }
+  state.userQuestion = document.getElementById('userQuestion').value.trim();
+  showPage('shuffle');
+}
+
+// =====================
+// SHUFFLE
+// =====================
+function doShuffle() {
+  const deck = document.getElementById('shuffleDeck');
+  deck.classList.add('shuffling');
+  setTimeout(() => deck.classList.remove('shuffling'), 700);
+
+  state.shuffleCount++;
+  document.getElementById('shuffleCount').textContent = state.shuffleCount;
+
+  if (state.shuffleCount >= 3) {
+    document.getElementById('btnStartDraw').disabled = false;
+  }
+}
+
+// =====================
+// DRAW PAGE
+// =====================
+function setupDrawPage() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  document.getElementById('drawSpreadTitle').textContent = spread.name;
+  state.drawnCards = [];
+
+  // Build fan of cards
+  const fan = document.getElementById('cardsFan');
+  const totalFanCards = 22;
+  let html = '';
+  for (let i = 0; i < totalFanCards; i++) {
+    html += `<div class="fan-card" id="fanCard${i}" onclick="drawCard(${i})"></div>`;
+  }
+  fan.innerHTML = html;
+
+  // Drawn area
+  document.getElementById('drawnCardsArea').innerHTML = '';
+
+  // Render empty slots
+  renderDrawnSlots();
+
+  updateDrawProgress();
+}
+
+function renderDrawnSlots() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  const area = document.getElementById('drawnCardsArea');
+
+  area.innerHTML = spread.positions.map((pos, idx) => {
+    const drawn = state.drawnCards[idx];
+    return `
+      <div class="drawn-card-slot">
+        <div class="slot-label">${pos}</div>
+        <div class="card-flip-container" onclick="${drawn ? `flipCard(${idx})` : ''}">
+          <div class="card-flip-inner ${drawn && drawn.flipped ? 'flipped' : ''}" id="cardFlip${idx}">
+            <div class="card-back"></div>
+            <div class="card-face ${drawn && drawn.reversed ? 'card-reversed' : ''}">
+              ${drawn ? `
+                <span class="card-face-emoji">${drawn.card.emoji}</span>
+                <span class="card-face-name">${drawn.card.name}</span>
+                <span class="card-orientation-badge ${drawn.reversed ? 'badge-reversed' : 'badge-upright'}">${drawn.reversed ? '逆' : '正'}</span>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function drawCard(idx) {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  if (state.drawnCards.length >= spread.count) return;
+
+  // Mark fan card as drawn
+  document.getElementById(`fanCard${idx}`).classList.add('drawn');
+
+  // Pick random tarot card
+  const card = randomCard();
+  const reversed = Math.random() < 0.35;
+
+  state.drawnCards.push({ card, reversed, flipped: false, fanIdx: idx });
+
+  renderDrawnSlots();
+  updateDrawProgress();
+}
+
+function flipCard(idx) {
+  if (!state.drawnCards[idx]) return;
+  state.drawnCards[idx].flipped = !state.drawnCards[idx].flipped;
+  renderDrawnSlots();
+}
+
+function updateDrawProgress() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  const drawn = state.drawnCards.length;
+  const total = spread.count;
+
+  if (drawn < total) {
+    document.getElementById('drawProgress').textContent =
+      `请抽取第 ${drawn + 1} 张牌（共 ${total} 张）`;
+    document.getElementById('btnStartReading').disabled = true;
+  } else {
+    document.getElementById('drawProgress').textContent =
+      `✦ 已抽取全部 ${total} 张牌 · 点击牌面翻转查看，然后开始解读`;
+    document.getElementById('btnStartReading').disabled = false;
+    // Auto flip all
+    setTimeout(() => {
+      state.drawnCards.forEach((d, i) => { d.flipped = true; });
+      renderDrawnSlots();
+    }, 500);
+  }
+}
+
+function resetDraw() {
+  setupDrawPage();
+}
+
+// =====================
+// READING PAGE
+// =====================
+function startReading() {
+  showPage('reading');
+  setupReadingPage();
+}
+
+function setupReadingPage() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+
+  // Check API key visibility
+  const keyNotice = document.getElementById('apiSetupNotice');
+  if (state.apiKey) {
+    keyNotice.style.display = 'none';
+  } else {
+    keyNotice.style.display = 'flex';
+    document.getElementById('apiKeyInput').value = '';
+  }
+
+  // Spread summary
+  const summary = document.getElementById('readingSpreadSummary');
+  summary.innerHTML = state.drawnCards.map((d, i) => `
+    <div class="reading-card-thumb">
+      <div class="thumb-card ${d.reversed ? 'reversed-thumb' : ''}">${d.card.emoji}</div>
+      <div class="thumb-label">${spread.positions[i]}</div>
+    </div>
+  `).join('');
+
+  // Content area
+  const content = document.getElementById('readingContent');
+
+  if (!state.apiKey) {
+    content.innerHTML = buildFallbackReading();
+  } else {
+    content.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:2rem 0;font-size:0.9rem;">
+      <div class="magic-circle" style="margin:0 auto 1rem;width:50px;height:50px;">
+        <div class="magic-ring"></div>
+        <div class="magic-ring"></div>
+      </div>
+      正在呼唤星命之力...
+    </div>`;
+    callAI();
+  }
+}
+
+function buildFallbackReading() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  const uprightMeanings = {
+    0: "新的开始与冒险，无拘无束地踏上未知旅程",
+    1: "意志力与创造力，你拥有实现目标的一切资源",
+    2: "直觉与内在智慧，聆听内心深处的声音",
+    3: "丰盛与创造力，生命力旺盛，好事即将到来",
+    4: "稳固的根基，权威与领导力，脚踏实地",
+    5: "传统智慧的指引，寻求导师或精神支持",
+    6: "爱与选择，关系中的和谐与相互吸引",
+    7: "意志力与自制，凭借决心克服前进阻碍",
+    8: "内在力量与勇气，温柔地征服恐惧与困境",
+    9: "内省与寻找内在真相，独立思考的智慧",
+    10: "命运的转轮，变化即将到来，顺势而为",
+    11: "公平与真相，用理性权衡，寻求平衡",
+    12: "暂停与等待，换个角度看问题会有新发现",
+    13: "转化与蜕变，结束是另一段旅程的开始",
+    14: "耐心与平衡，融合不同能量，中庸之道",
+    15: "物质束缚与执念，是时候检视内心的枷锁",
+    16: "突如其来的变化，旧有结构的崩塌与重建",
+    17: "希望与灵感，黑暗后必将迎来曙光",
+    18: "潜意识与幻象，注意情绪变化，保持清醒",
+    19: "活力与成功，积极向上，充满光明能量",
+    20: "觉醒与重生，聆听内心呼唤，做出改变",
+    21: "圆满完成，整合所有经验，达到新的高度"
+  };
+
+  const reversedMeanings = {
+    0: "逃避责任，缺乏方向，需要更多考量",
+    1: "潜能未发挥，意志力散漫，欺骗或混乱",
+    2: "忽视直觉，隐藏的秘密浮出水面",
+    3: "创造力受阻，依赖他人，缺乏安全感",
+    4: "控制欲过强，专制固执，权威失衡",
+    5: "反叛传统，质疑权威，寻找个人信仰",
+    6: "关系不和谐，缺乏沟通，价值观冲突",
+    7: "缺乏自制，方向不明，能量分散",
+    8: "力量内耗，对自己过于苛刻，不自信",
+    9: "孤立与封闭，拒绝帮助，内心迷失",
+    10: "抵抗变化，运气不佳，打破惯性循环",
+    11: "不公平与偏见，逃避责任与判断",
+    12: "内在的抵抗，不愿放下，执念阻碍成长",
+    13: "抗拒改变，停滞不前，害怕失去",
+    14: "极端与过激，缺乏耐心，能量失衡",
+    15: "挣脱束缚，认识到自身的局限并突破",
+    16: "内在的混乱被化解，避免突然的破坏",
+    17: "失去希望，消极情绪，需要重新找到方向",
+    18: "恐惧消散，走出迷雾，混乱慢慢清晰",
+    19: "自我中心，过于乐观，忽视现实困难",
+    20: "自我怀疑，拒绝成长的机会，错过觉醒",
+    21: "半途而废，尚未完成的旅程，重新整合"
+  };
+
+  let html = '';
+
+  // Overall reading
+  html += `
+    <div class="reading-section">
+      <div class="reading-section-title">✦ 整体运势</div>
+      <div class="reading-text">
+        <p>此次占卜选用<strong>${SPREADS.find(s => s.id === state.currentSpread).name}</strong>，
+        ${state.userQuestion ? `你所关注的是：<strong>「${state.userQuestion}」</strong>。` : ''}
+        星盘为你展开了命运的画卷，让我们逐一解读其中的深意。</p>
+        <p>牌面整体呈现出一种<strong class="highlight-purple">变化与蜕变</strong>的能量，当前阶段正处于重要的转折点。
+        宇宙的力量提醒你：内在的智慧远比外部的指引更为可靠，相信自己的直觉。</p>
+      </div>
+    </div>
+  `;
+
+  // Individual cards
+  html += `
+    <div class="reading-section">
+      <div class="reading-section-title">✦ 牌面详解</div>
+  `;
+
+  state.drawnCards.forEach((d, i) => {
+    const spread = SPREADS.find(s => s.id === state.currentSpread);
+    const meaning = d.reversed
+      ? (reversedMeanings[d.card.id] || "内在能量转化，需要更深的自省")
+      : (uprightMeanings[d.card.id] || "正向能量涌现，积极面对现状");
+
+    html += `
+      <div class="reading-card-detail">
+        <div class="card-detail-header">
+          <div class="card-detail-mini">${d.card.emoji}</div>
+          <div class="card-detail-info">
+            <div class="card-detail-name">${d.card.name} · ${d.reversed ? '逆位' : '正位'}</div>
+            <div class="card-detail-pos">${spread.positions[i]}</div>
+          </div>
+        </div>
+        <div class="reading-text">
+          <p>${meaning}。在「${spread.positions[i]}」这个位置，${d.card.name}
+          ${d.reversed ? '以逆位出现，提醒你需要关注内在的阻力' : '以正位出现，带来积极的引导能量'}。</p>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  // Advice
+  html += `
+    <div class="reading-section">
+      <div class="reading-section-title">✦ 综合建议</div>
+      <div class="reading-text">
+        <p>塔罗牌的智慧不在于预测命运，而在于帮你看清内心真实的状态与渴望。牌面呈现的，是你在潜意识中已然知晓的答案。</p>
+        <p>建议你在未来一段时间里，<strong>保持内心的觉察</strong>，遇事不急于行动，给自己留出足够的空间去感受和思考。
+        宇宙的安排自有深意，相信每一次经历都是灵魂成长的礼物。</p>
+        <p style="color:var(--text-muted);font-size:0.8rem;font-style:italic;margin-top:0.75rem;">
+          ✦ 配置 API Key 可获得基于你具体牌面的 AI 智能深度解读
+        </p>
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+// =====================
+// AI CALL
+// =====================
+async function callAI() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  const content = document.getElementById('readingContent');
+
+  const cardsDesc = state.drawnCards.map((d, i) =>
+    `${spread.positions[i]}：${d.card.name}（${d.reversed ? '逆位' : '正位'}）`
+  ).join('、');
+
+  const prompt = `你是一位专业而富有洞察力的塔罗牌占卜师。请根据以下信息提供一次专业、通俗易懂的塔罗牌解读：
+
+牌阵：${spread.name}
+${state.userQuestion ? `用户问题：${state.userQuestion}` : '（用户未指定问题，请提供通用指引）'}
+
+抽取的牌面：
+${cardsDesc}
+
+请按以下结构解读（用中文，语气温暖、有力，偏向指引建议，避免封建迷信，仅供娱乐参考）：
+
+【整体运势】
+简述此次占卜整体能量与核心信息（2-3段）
+
+【牌面详解】
+逐一解读每张牌在其位置的含义，结合正逆位分析（每张2-3句）
+
+【综合建议】
+给出实际可行的人生建议，以积极向上的角度结尾（1-2段）`;
+
+  try {
+    const isOpenRouter = state.apiKey.startsWith('sk-or-');
+    const apiUrl = isOpenRouter
+      ? 'https://openrouter.ai/api/v1/chat/completions'
+      : 'https://api.openai.com/v1/chat/completions';
+
+    const model = isOpenRouter ? 'openai/gpt-4o-mini' : 'gpt-4o-mini';
+
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${state.apiKey}`,
+        ...(isOpenRouter ? { 'HTTP-Referer': window.location.href, 'X-Title': '星命塔罗' } : {})
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1500,
+        temperature: 0.8,
+        stream: true
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API 错误 ${res.status}`);
+    }
+
+    // Streaming
+    content.innerHTML = '';
+    let fullText = '';
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+
+      for (const line of lines) {
+        const data = line.slice(6);
+        if (data === '[DONE]') break;
+        try {
+          const json = JSON.parse(data);
+          const delta = json.choices?.[0]?.delta?.content || '';
+          if (delta) {
+            fullText += delta;
+            content.innerHTML = renderMarkdownReading(fullText);
+          }
+        } catch {}
+      }
+    }
+
+    state.readingResult = fullText;
+
+  } catch (err) {
+    console.error(err);
+    content.innerHTML = `
+      <div style="background:rgba(150,50,50,0.1);border:1px solid rgba(200,100,100,0.3);border-radius:8px;padding:1.25rem;margin-bottom:1rem;">
+        <div style="color:#f5a0a0;font-size:0.85rem;margin-bottom:0.5rem;">⚠ AI 解读失败：${err.message}</div>
+        <div style="color:var(--text-muted);font-size:0.78rem;">请检查 API Key 是否正确，或网络连接是否正常</div>
+      </div>
+    ` + buildFallbackReading();
+  }
+}
+
+function renderMarkdownReading(text) {
+  // Convert markdown-like text to HTML
+  let html = text
+    .replace(/【(.+?)】/g, (_, title) =>
+      `</div></div><div class="reading-section"><div class="reading-section-title">✦ ${title}</div><div class="reading-text">`)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>');
+
+  // Wrap in sections
+  html = `<div class="reading-section"><div class="reading-section-title">✦ 解读内容</div><div class="reading-text"><p>${html}</p></div></div>`;
+
+  // Clean up empty sections
+  html = html.replace(/<div class="reading-section"><div class="reading-section-title">✦ 解读内容<\/div><div class="reading-text"><p><\/div><\/div>/g, '');
+
+  return html;
+}
+
+// =====================
+// API KEY
+// =====================
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { showToast('请输入 API Key'); return; }
+  state.apiKey = key;
+  localStorage.setItem('tarot_api_key', key);
+  document.getElementById('apiSetupNotice').style.display = 'none';
+  showToast('✦ API Key 已保存');
+  callAI();
+}
+
+function clearApiKey() {
+  state.apiKey = '';
+  localStorage.removeItem('tarot_api_key');
+  document.getElementById('apiKeyInput').value = '';
+  showToast('API Key 已清除');
+}
+
+// =====================
+// SAVE / HISTORY
+// =====================
+function saveReading() {
+  const spread = SPREADS.find(s => s.id === state.currentSpread);
+  const record = {
+    id: Date.now(),
+    date: new Date().toLocaleString('zh-CN'),
+    spreadName: spread.name,
+    question: state.userQuestion,
+    cards: state.drawnCards.map(d => ({
+      cardId: d.card.id,
+      cardName: d.card.name,
+      cardEmoji: d.card.emoji,
+      reversed: d.reversed
+    })),
+    reading: state.readingResult || ''
+  };
+  state.history.unshift(record);
+  if (state.history.length > 50) state.history.pop();
+  localStorage.setItem('tarot_history', JSON.stringify(state.history));
+  showToast('✦ 解读记录已保存');
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyContainer');
+  if (!state.history.length) {
+    container.innerHTML = `
+      <div style="text-align:center;padding:3rem;color:var(--text-muted);">
+        <div style="font-size:2rem;margin-bottom:1rem;">☽</div>
+        <div>暂无占卜记录</div>
+        <div style="margin-top:1rem;">
+          <button class="btn-primary" onclick="showPage('spread')">开始第一次占卜</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = state.history.map(r => `
+    <div class="history-item" onclick="viewHistoryItem(${r.id})">
+      <div class="history-item-header">
+        <div class="history-spread-name">${r.spreadName}</div>
+        <div class="history-date">${r.date}</div>
+      </div>
+      ${r.question ? `<div class="history-question">「${r.question}」</div>` : ''}
+      <div class="history-cards">
+        ${r.cards.map(c => `<div class="history-mini-card">${c.cardEmoji}</div>`).join('')}
+      </div>
+    </div>
+  `).join('') + `
+    <div style="text-align:center;margin-top:1.5rem;">
+      <button class="btn-secondary" onclick="clearHistory()">清空所有记录</button>
+    </div>
+  `;
+}
+
+function viewHistoryItem(id) {
+  const record = state.history.find(r => r.id === id);
+  if (!record) return;
+
+  showModal('historyDetail', record);
+}
+
+function clearHistory() {
+  showModal('confirm', {
+    title: '清空记录',
+    desc: '确认清空所有占卜历史记录？此操作无法撤销。',
+    onConfirm: () => {
+      state.history = [];
+      localStorage.removeItem('tarot_history');
+      closeModal();
+      renderHistory();
+      showToast('历史记录已清空');
+    }
+  });
+}
+
+// =====================
+// MODAL
+// =====================
+function showModal(type, data) {
+  const bg = document.getElementById('modalBg');
+  const content = document.getElementById('modalContent');
+
+  if (type === 'login') {
+    content.innerHTML = `
+      <div style="font-size:2rem;margin-bottom:0.75rem;">☽</div>
+      <h3 class="modal-title">登录 · 星命塔罗</h3>
+      <p class="modal-desc">登录后可保存解读记录、管理历史占卜、解锁完整功能。</p>
+      <div style="margin-bottom:0.75rem;">
+        <input style="width:100%;background:rgba(26,20,40,0.8);border:1px solid var(--border-purple);border-radius:4px;padding:0.65rem 1rem;color:var(--text-primary);font-family:'Noto Serif SC',serif;font-size:0.88rem;outline:none;margin-bottom:0.5rem;" type="email" placeholder="邮箱地址">
+        <input style="width:100%;background:rgba(26,20,40,0.8);border:1px solid var(--border-purple);border-radius:4px;padding:0.65rem 1rem;color:var(--text-primary);font-family:'Noto Serif SC',serif;font-size:0.88rem;outline:none;" type="password" placeholder="密码">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="closeModal();showToast('✦ 此为演示版，登录功能需接入Clerk')">登录</button>
+        <button class="btn-secondary" onclick="closeModal()">取消</button>
+      </div>
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:1rem;">没有账号？<span style="color:var(--purple-pale);cursor:pointer;" onclick="showToast('注册功能需接入Clerk')">注册新账号</span></p>
+    `;
+  } else if (type === 'historyDetail' && data) {
+    content.innerHTML = `
+      <h3 class="modal-title">${data.spreadName}</h3>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:1rem;">${data.date}</p>
+      ${data.question ? `<p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;font-style:italic;">「${data.question}」</p>` : ''}
+      <div style="display:flex;gap:0.5rem;justify-content:center;margin-bottom:1.25rem;flex-wrap:wrap;">
+        ${data.cards.map(c => `
+          <div style="text-align:center;">
+            <div style="width:44px;height:70px;border:1px solid var(--border-gold);border-radius:3px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 0.3rem;">${c.cardEmoji}</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);max-width:50px;">${c.cardName}<br>${c.reversed ? '逆' : '正'}</div>
+          </div>
+        `).join('')}
+      </div>
+      ${data.reading ? `<div style="max-height:200px;overflow-y:auto;font-size:0.82rem;color:var(--text-secondary);line-height:1.7;text-align:left;background:rgba(26,20,40,0.6);border-radius:6px;padding:1rem;">${data.reading.replace(/\n/g,'<br>')}</div>` : ''}
+      <div class="modal-actions" style="margin-top:1.25rem;">
+        <button class="btn-secondary" onclick="deleteHistoryItem(${data.id})">删除记录</button>
+        <button class="btn-primary" onclick="closeModal()">关闭</button>
+      </div>
+    `;
+  } else if (type === 'confirm' && data) {
+    content.innerHTML = `
+      <h3 class="modal-title">${data.title}</h3>
+      <p class="modal-desc">${data.desc}</p>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="(${data.onConfirm.toString()})()">确认</button>
+        <button class="btn-secondary" onclick="closeModal()">取消</button>
+      </div>
+    `;
+  }
+
+  bg.classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modalBg').classList.remove('active');
+}
+
+function deleteHistoryItem(id) {
+  state.history = state.history.filter(r => r.id !== id);
+  localStorage.setItem('tarot_history', JSON.stringify(state.history));
+  closeModal();
+  renderHistory();
+  showToast('记录已删除');
+}
+
+function showAbout() {
+  const bg = document.getElementById('modalBg');
+  document.getElementById('modalContent').innerHTML = `
+    <div style="font-size:2.5rem;margin-bottom:1rem;">☽</div>
+    <h3 class="modal-title">关于 · 星命塔罗</h3>
+    <p class="modal-desc" style="text-align:left;">
+      星命塔罗是一款沉浸式 AI 塔罗占卜平台，完整还原线下塔罗抽牌流程，搭配 AI 大模型智能解读。<br><br>
+      支持单牌、三牌阵、二选一、六芒星、凯尔特十字等经典牌阵，覆盖大阿尔卡那二十二张塔罗。<br><br>
+      <strong style="color:var(--gold);">使用提示：</strong><br>
+      配置 OpenRouter 或 OpenAI API Key 以启用 AI 深度解读功能，Key 仅存储于本地浏览器。<br><br>
+      <span style="font-size:0.75rem;color:var(--text-muted);">⚠ 本应用仅供娱乐参考，不构成任何现实决策依据。</span>
+    </p>
+    <button class="btn-primary" onclick="closeModal()">了解了</button>
+  `;
+  bg.classList.add('active');
+}
+
+// Close modal on bg click
+document.getElementById('modalBg').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('modalBg')) closeModal();
+});
+
+// =====================
+// INIT
+// =====================
+window.addEventListener('DOMContentLoaded', () => {
+  renderSpreads();
+  if (state.apiKey) {
+    document.getElementById('apiSetupNotice').style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>
