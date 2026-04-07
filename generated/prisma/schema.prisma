@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client-js"
@@ -11,11 +10,42 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model TarotCard {
+  id              Int     @id
+  name            String
+  arcana          String
+  suit            String?
+  rankKey         String?
+  uprightMeaning  String  @db.Text
+  reversedMeaning String  @db.Text
+  element         String?
+  emoji           String
 
-  @@index([name])
+  @@index([arcana])
+}
+
+model Spread {
+  id          String   @id
+  name        String
+  description String   @db.Text
+  cardCount   Int
+  positions   Json
+  hot         Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  readings ReadingRecord[]
+}
+
+model ReadingRecord {
+  id             String   @id @default(cuid())
+  clerkUserId    String
+  spreadId       String
+  spread         Spread   @relation(fields: [spreadId], references: [id], onDelete: Cascade)
+  question       String?
+  drawResult     Json
+  interpretation String   @db.Text
+  createdAt      DateTime @default(now())
+
+  @@index([clerkUserId, createdAt])
 }

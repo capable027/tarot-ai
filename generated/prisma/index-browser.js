@@ -121,11 +121,37 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.TarotCardScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  arcana: 'arcana',
+  suit: 'suit',
+  rankKey: 'rankKey',
+  uprightMeaning: 'uprightMeaning',
+  reversedMeaning: 'reversedMeaning',
+  element: 'element',
+  emoji: 'emoji'
+};
+
+exports.Prisma.SpreadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  cardCount: 'cardCount',
+  positions: 'positions',
+  hot: 'hot',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReadingRecordScalarFieldEnum = {
+  id: 'id',
+  clerkUserId: 'clerkUserId',
+  spreadId: 'spreadId',
+  question: 'question',
+  drawResult: 'drawResult',
+  interpretation: 'interpretation',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -133,14 +159,31 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
 
 exports.Prisma.ModelName = {
-  Post: 'Post'
+  TarotCard: 'TarotCard',
+  Spread: 'Spread',
+  ReadingRecord: 'ReadingRecord'
 };
 
 /**

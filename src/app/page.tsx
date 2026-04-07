@@ -1,53 +1,67 @@
 import Link from "next/link";
 
-import { LatestPost } from "~/app/_components/post";
-import { api, HydrateClient } from "~/trpc/server";
+import { buttonVariants } from "~/lib/button-variants";
+import { cn } from "~/lib/utils";
 
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-
-  void api.post.getLatest.prefetch();
-
+export default function HomePage() {
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-          </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
-          </div>
-
-          <LatestPost />
+    <main className="relative mx-auto flex min-h-[calc(100vh-3.5rem)] max-w-3xl flex-col items-center justify-center px-4 py-16 text-center">
+      <div className="relative mb-8 size-28">
+        <div
+          className="absolute inset-0 rounded-full border border-[#c9a84c]/50"
+          style={{ animation: "mystic-spin 22s linear infinite" }}
+        />
+        <div
+          className="absolute inset-2 rounded-full border border-[#9575de]/35"
+          style={{ animation: "mystic-spin 16s linear infinite reverse" }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center text-3xl text-[#c9a84c]">
+          ✦
         </div>
-      </main>
-    </HydrateClient>
+      </div>
+
+      <h1 className="font-[family-name:var(--font-cinzel)] text-3xl font-bold tracking-[0.2em] sm:text-4xl">
+        <span className="bg-gradient-to-br from-[#e8c76a] via-[#c4a8f0] to-[#c9a84c] bg-clip-text text-transparent">
+          ARCANA ORACLE
+        </span>
+      </h1>
+      <p className="mt-2 text-xs tracking-[0.35em] text-muted-foreground">
+        星命塔罗 · AI 智能解读
+      </p>
+
+      <p className="mt-8 max-w-md text-sm leading-relaxed text-muted-foreground">
+        还原洗牌、抽牌、翻面与牌阵摆放的线下仪式感；结合服务端
+        AI（密钥仅在后端）生成通俗指引。凝神静气，让牌面成为自我对话的镜子。
+      </p>
+
+      <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          href="/spread"
+          className={cn(buttonVariants({ size: "lg" }), "px-8")}
+        >
+          ✦ 开始占卜
+        </Link>
+        <Link
+          href="/history"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }))}
+        >
+          历史记录
+        </Link>
+      </div>
+
+      <p className="mt-14 text-[0.7rem] tracking-widest text-muted-foreground">
+        仅供娱乐参考，不构成现实决策依据
+      </p>
+
+      <p className="mt-4 text-[0.65rem] text-muted-foreground/80">
+        静态原型见{" "}
+        <a
+          className="text-[#c4a8f0] underline-offset-2 hover:underline"
+          href="/tarot-prototype.html"
+        >
+          tarot-prototype.html
+        </a>
+      </p>
+    </main>
   );
 }

@@ -93,11 +93,37 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.TarotCardScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  arcana: 'arcana',
+  suit: 'suit',
+  rankKey: 'rankKey',
+  uprightMeaning: 'uprightMeaning',
+  reversedMeaning: 'reversedMeaning',
+  element: 'element',
+  emoji: 'emoji'
+};
+
+exports.Prisma.SpreadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  cardCount: 'cardCount',
+  positions: 'positions',
+  hot: 'hot',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ReadingRecordScalarFieldEnum = {
+  id: 'id',
+  clerkUserId: 'clerkUserId',
+  spreadId: 'spreadId',
+  question: 'question',
+  drawResult: 'drawResult',
+  interpretation: 'interpretation',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -105,14 +131,31 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
 
 exports.Prisma.ModelName = {
-  Post: 'Post'
+  TarotCard: 'TarotCard',
+  Spread: 'Spread',
+  ReadingRecord: 'ReadingRecord'
 };
 /**
  * Create the Client
@@ -125,7 +168,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/zhinan/Downloads/tarot-ai/t3-app/generated/prisma",
+      "value": "/Users/zhinan/Downloads/tarot-ai/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -139,7 +182,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/zhinan/Downloads/tarot-ai/t3-app/prisma/schema.prisma",
+    "sourceFilePath": "/Users/zhinan/Downloads/tarot-ai/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -153,7 +196,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -162,13 +204,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Post {\n  id        Int      @id @default(autoincrement())\n  name      String\n  createdAt DateTime @default(now())\n  updatedAt DateTime @updatedAt\n\n  @@index([name])\n}\n",
-  "inlineSchemaHash": "4dfee2d805d63053d5ae63a6ff65a5c68e353713bdd4147909d9158ea83d8e0f",
+  "inlineSchema": "// https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel TarotCard {\n  id              Int     @id\n  name            String\n  arcana          String\n  suit            String?\n  rankKey         String?\n  uprightMeaning  String  @db.Text\n  reversedMeaning String  @db.Text\n  element         String?\n  emoji           String\n\n  @@index([arcana])\n}\n\nmodel Spread {\n  id          String   @id\n  name        String\n  description String   @db.Text\n  cardCount   Int\n  positions   Json\n  hot         Boolean  @default(false)\n  createdAt   DateTime @default(now())\n  updatedAt   DateTime @updatedAt\n\n  readings ReadingRecord[]\n}\n\nmodel ReadingRecord {\n  id             String   @id @default(cuid())\n  clerkUserId    String\n  spreadId       String\n  spread         Spread   @relation(fields: [spreadId], references: [id], onDelete: Cascade)\n  question       String?\n  drawResult     Json\n  interpretation String   @db.Text\n  createdAt      DateTime @default(now())\n\n  @@index([clerkUserId, createdAt])\n}\n",
+  "inlineSchemaHash": "78de285b4682fd42ed94322da77ece4953882b283a445fbea9cd1a49ddcf6c29",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Post\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"TarotCard\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"arcana\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"suit\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"rankKey\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"uprightMeaning\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"reversedMeaning\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"element\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"emoji\",\"kind\":\"scalar\",\"type\":\"String\"}],\"dbName\":null},\"Spread\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"cardCount\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"positions\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"hot\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"readings\",\"kind\":\"object\",\"type\":\"ReadingRecord\",\"relationName\":\"ReadingRecordToSpread\"}],\"dbName\":null},\"ReadingRecord\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clerkUserId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"spreadId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"spread\",\"kind\":\"object\",\"type\":\"Spread\",\"relationName\":\"ReadingRecordToSpread\"},{\"name\":\"question\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"drawResult\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"interpretation\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),
